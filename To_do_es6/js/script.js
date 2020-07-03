@@ -27,7 +27,8 @@ class Todo {
             li.key = todo.key;
             li.insertAdjacentHTML("beforeend", `
             <span class="text-todo">${todo.value}</span>
-				<div class="todo-buttons">
+                <div class="todo-buttons">
+                    <button class="todo-edit"></button>
 					<button class="todo-remove"></button>
 					<button class="todo-complete"></button>
                 </div>`
@@ -77,15 +78,39 @@ class Todo {
             this.render();
         }
 
+        editItem(todo, updatedValue) {
+            todo[1].value = updatedValue;
+            this.todoData.set(todo[0], todo[1]);
+            this.render();
+        }
+
         handler() {
-            const todoContainer = document.querySelector(".todo-container");
-            todoContainer.addEventListener("click", e => {
+            let updatedTodo, todoItem;
+            document.addEventListener("click", e => {
                 const target = e.target;
-                if (target.matches(".todo-remove")) {
-                    this.deleteItem(target.closest(".todo-item").querySelector("span").textContent);
+                const todo = target.closest(".todo-item");
+
+                if (todo) {
+                    if (target.matches(".todo-remove")) {
+                        this.deleteItem(todo.querySelector("span").textContent);
+                    }
+                    if (target.matches(".todo-complete")) {
+                        this.completeItem(todo.querySelector("span").textContent);
+                    }
+                    if (target.matches(".todo-edit")) {
+                        todo.querySelector("span").contentEditable = "true";
+                        updatedTodo = todo.querySelector("span");
+                        todoItem = this.findObjectByValue(updatedTodo.textContent);
+                    }
                 }
-                if (target.matches(".todo-complete")) {
-                    this.completeItem(target.closest(".todo-item").querySelector("span").textContent);
+                // save changes on click outside span
+                if (updatedTodo && target !== updatedTodo && !target.matches(".todo-edit")) {
+                    updatedTodo.contentEditable = "false";
+
+                    // edit in case of updates
+                    if (todoItem[1].value !== updatedTodo.textContent) {
+                        this.editItem(todoItem, updatedTodo.textContent);
+                    }
                 }
             });
         }
